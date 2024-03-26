@@ -1,0 +1,37 @@
+//@version=5
+strategy("AlphaTrend Momentum Trader", overlay=true)
+
+// MACD Settings
+fastLength = input(12, title="Fast EMA Length")
+slowLength = input(26, title="Slow EMA Length")
+signalLength = input(9, title="Signal Line Length")
+MACD = ta.ema(close, fastLength) - ta.ema(close, slowLength)
+signalLine = ta.ema(MACD, signalLength)
+delta = MACD - signalLine
+
+// Moving Average (Trend Indicator)
+maPeriod = input(200, title="Moving Average Period")
+ma = ta.sma(close, maPeriod)
+
+// Relative Strength Index (Momentum Indicator)
+rsiPeriod = input(14, title="RSI Period")
+rsi = ta.rsi(close, rsiPeriod)
+
+// On-Balance Volume (Volume Indicator) - Calculate manually
+var float obv = na
+obv := na(obv[1]) ? volume : (close > close[1] ? obv[1] + volume : close < close[1] ? obv[1] - volume : obv[1])
+
+// Entry Conditions
+longCondition = ta.crossover(delta, 0) and (close > ma) and (rsi < 70) and (obv > ta.sma(obv, 20))
+shortCondition = ta.crossunder(delta, 0) and (close < ma) and (rsi > 30) and (obv < ta.sma(obv, 20))
+
+// Strategy Entries
+if (longCondition)
+    strategy.entry("Long", strategy.long)
+
+if (shortCondition)
+    strategy.entry("Short", strategy.short)
+
+// Credits
+// Written by [Your Name Here]
+// Date: [Current Date Here]
